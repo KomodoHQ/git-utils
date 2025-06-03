@@ -33,7 +33,7 @@ In your working repo (where you are implementing `notify-slack`), add the follow
 - SLACK_CHANNEL -> this points the API to a specific channel in Slack by it's Channel ID, e.g., `C0123TEST`
 
 In your chosen Action, you can add a Slack message as a simple job, such as
-```
+```yml
 jobs:
   notify-slack:
     uses: KomodoHQ/git-utils/.github/workflows/slack-notify.yml@main
@@ -45,7 +45,7 @@ jobs:
 ```
 
 Alternatively you can add conditional messages, such as sending one message if an action is successful and a different message if the action fails, such as
-```
+```yml
   jobs:
     deploy:
       name: Run Staging Deploy
