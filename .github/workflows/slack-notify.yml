@@ -1,0 +1,38 @@
+name: Slack Notify
+
+on:
+    workflow_call:
+        inputs:
+            channel:
+                required: true
+                type: string
+            message:
+                required: true
+                type: string
+        secrets:
+            SLACK_BOT_TOKEN:
+                required: true
+
+jobs:
+    notify:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Notify Slack
+              id: send_notification
+              run: |
+                echo "Sending notification to Slack channel"
+
+                payload=$(jq -n \
+                    --arg channel "${{ inputs.channel }}" \
+                    --arg text "${{ inputs.message }}" \
+                    '{
+                        channel: $channel,
+                        text: $text
+                    }')
+                response=$(curl -s -X POST \
+                    -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+                    -H "Content-Type: application/json" \
+                    --data "$payload" \
+                    https://slack.com/api/chat.postMessage)
+
+                echo "Slack response: $response"
