@@ -43,21 +43,20 @@ jobs:
                 sha="${{ inputs.commit_sha }}"
                 status="${{ inputs.status }}"
 
-                # Fallbacks
                 [ -z "$repo" ] && repo="n/a"
                 [ -z "$branch" ] && branch="n/a"
                 [ -z "$actor" ] && actor="n/a"
                 [ -z "$action" ] && action="n/a"
                 [ -z "$sha" ] && sha="n/a"
 
-                cat <<EOF >> $GITHUB_ENV
-                SLACK_MESSAGE=*Deployment ${status}*
-                *Repository:* \`${repo}\`
-                *Branch:* \`${branch}\`
-                *Commit:* \`${sha}\`
-                *Author:* \`${actor}\`
-                *Action:* \`${action}\`
-                EOF
+                echo "SLACK_MESSAGE<<EOF" >> $GITHUB_ENV
+                echo "*Deployment ${status}*" >> $GITHUB_ENV
+                echo "*Repository:* \`${repo}\`" >> $GITHUB_ENV
+                echo "*Branch:* \`${branch}\`" >> $GITHUB_ENV
+                echo "*Commit:* \`${sha}\`" >> $GITHUB_ENV
+                echo "*Author:* \`${actor}\`" >> $GITHUB_ENV
+                echo "*Action:* \`${action}\`" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
 
             - name: Notify Slack
               id: send_notification
