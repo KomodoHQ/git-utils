@@ -58,63 +58,71 @@ jobs:
                 echo "*Action:* \`${action}\`" >> $GITHUB_ENV
                 echo "EOF" >> $GITHUB_ENV
 
-            - name: Notify Slack
-              id: send_notification
+            - name: Build Slack payload
+              env:
+                STATUS: ${{ inputs.status }}
+                REPO: ${{ inputs.repository }}
+                BRANCH: ${{ inputs.branch }}
+                SHA: ${{ inputs.commit_sha }}
+                ACTOR: ${{ inputs.actor }}
+                ACTION_NAME: ${{ inputs.action_name }}
+                GITHUB_RUN_ID: ${{ github.run_id }}
               run: |
-                echo "Sending notification to Slack channel"
-
-                payload=$(jq -n \
+                  echo "Building message with env vars:"
+                  echo "REPO=$REPO, BRANCH=$BRANCH, SHA=$SHA, ACTOR=$ACTOR, ACTION_NAME=$ACTION_NAME"
+              
+                  payload=$(jq -n \
                     --arg channel "${{ secrets.SLACK_CHANNEL }}" \
-                    --arg status "${status}" \
-                    --arg repo "${repo}" \
-                    --arg branch "${branch}" \
-                    --arg sha "${sha}" \
-                    --arg actor "${actor}" \
-                    --arg action "${action}" \
-                    --arg url "https://github.com/${repo}/actions/runs/${{ github.run_id }}" \
+                    --arg status "$STATUS" \
+                    --arg repo "$REPO" \
+                    --arg branch "$BRANCH" \
+                    --arg sha "$SHA" \
+                    --arg actor "$ACTOR" \
+                    --arg action "$ACTION_NAME" \
+                    --arg url "https://github.com/$REPO/actions/runs/$GITHUB_RUN_ID" \
                     '{
-                        channel: $channel,
-                        blocks: [
+                      channel: $channel,
+                      blocks: [
                         {
-                            "type": "header",
-                            "text": {
+                          "type": "header",
+                          "text": {
                             "type": "plain_text",
-                            "text": ":rocket: Deployment '"${status^}"' :rocket:",
+                            "text": ":rocket: Deployment \($status | ascii_upcase) :rocket:",
                             "emoji": true
-                            }
+                          }
                         },
                         {
-                            "type": "section",
-                            "fields": [
+                          "type": "section",
+                          "fields": [
                             { "type": "mrkdwn", "text": "*Repository:*\n`\($repo)`" },
                             { "type": "mrkdwn", "text": "*Branch:*\n`\($branch)`" },
                             { "type": "mrkdwn", "text": "*Commit:*\n`\($sha)`" },
                             { "type": "mrkdwn", "text": "*Author:*\n`\($actor)`" },
                             { "type": "mrkdwn", "text": "*Workflow:*\n`\($action)`" }
-                            ]
+                          ]
                         },
                         {
-                            "type": "actions",
-                            "elements": [
+                          "type": "actions",
+                          "elements": [
                             {
-                                "type": "button",
-                                "text": {
+                              "type": "button",
+                              "text": {
                                 "type": "plain_text",
                                 "text": "View Workflow",
                                 "emoji": true
-                                },
-                                "url": $url,
-                                "style": "primary"
+                              },
+                              "url": $url,
+                              "style": "primary"
                             }
-                            ]
+                          ]
                         }
-                        ]
+                      ]
                     }')
-
-                response=$(curl -s -X POST \
+              
+                  echo "Slack payload: $payload"
+              
+                  curl -s -X POST \
                     -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
                     -H "Content-Type: application/json" \
                     --data "$payload" \
-                    https://slack.com/api/chat.postMessage)
-
-                echo "Slack response: $response"
+                    https://slack.com/api/chat.postMessage
