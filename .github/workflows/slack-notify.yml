@@ -3,10 +3,22 @@ name: Slack Notify
 on:
     workflow_call:
         inputs:
-            message:
+            status:
                 required: true
                 type: string
             repository:
+                required: false
+                type: string
+            branch:
+                required: false
+                type: string
+            commit_sha:
+                required: false
+                type: string
+            actor:
+                required: false
+                type: string
+            action_name:
                 required: false
                 type: string
         secrets:
@@ -19,6 +31,34 @@ jobs:
     notify:
         runs-on: ubuntu-latest
         steps:
+            - name: Build message
+              id: build_message
+              run: |
+                echo "Building message for Slack notification"
+                
+                repo="${{ inputs.repository }}"
+                branch="${{ inputs.branch }}"
+                actor="${{ inputs.actor }}"
+                action="${{ inputs.action_name }}"
+                sha="${{ inputs.commit_sha }}"
+                status="${{ inputs.status }}"
+
+                # Fallbacks
+                [ -z "$repo" ] && repo="n/a"
+                [ -z "$branch" ] && branch="n/a"
+                [ -z "$actor" ] && actor="n/a"
+                [ -z "$action" ] && action="n/a"
+                [ -z "$sha" ] && sha="n/a"
+
+                cat <<EOF >> $GITHUB_ENV
+                SLACK_MESSAGE=*Deployment ${status}*
+                *Repository:* \`${repo}\`
+                *Branch:* \`${branch}\`
+                *Commit:* \`${sha}\`
+                *Author:* \`${actor}\`
+                *Action:* \`${action}\`
+                EOF
+
             - name: Notify Slack
               id: send_notification
               run: |
@@ -26,7 +66,7 @@ jobs:
 
                 payload=$(jq -n \
                     --arg channel "${{ secrets.SLACK_CHANNEL }}" \
-                    --arg text "${{ inputs.message }}" \
+                    --arg text "$SLACK_MESSAGE" \
                     '{
                         channel: $channel,
                         text: $text
