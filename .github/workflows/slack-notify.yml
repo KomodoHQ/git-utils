@@ -6,6 +6,9 @@ on:
             message:
                 required: true
                 type: string
+            repository:
+                required: false
+                type: string
         secrets:
             SLACK_CHANNEL:
                 required: true
