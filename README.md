@@ -57,7 +57,7 @@ Alternatively you can add conditional messages, such as sending one message if a
 +       - name: Set output success flag
 +         id: set-output
 +         run: |
-+           if [ "${{ steps.deploy-step.outcome }} == "success" ]; then
++           if [ "${{ steps.deploy-step.outcome }}" == "success" ]; then
 +             echo "success=true" >> $GITHUB_OUTPUT
 +           else
 +             echo "success=false" >> $GITHUB_OUTPUT
@@ -69,7 +69,7 @@ Alternatively you can add conditional messages, such as sending one message if a
 +   if: ${{ needs.deploy.outputs.deployed == 'true' }}
 +   uses: KomodoHQ/git-utils/.github/workflows/slack-notify.yml@main
 +   with:
-+     message: "Staging deploy succeeded for `${{ github.repository }}`
++     message: "Staging deploy succeeded for `${{ github.repository }}`"
 +   secrets:
 +     SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
 +     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -80,7 +80,7 @@ Alternatively you can add conditional messages, such as sending one message if a
 +   if: ${{ needs.deploy.outputs.deployed == 'false' }}
 +   uses: KomodoHQ/git-utils/.github/workflows/slack-notify.yml@main
 +   with:
-+     message: "Staging deploy failed for `${{ github.repository }}`
++     message: "Staging deploy failed for `${{ github.repository }}`"
 +   secrets:
 +     SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
 +     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
