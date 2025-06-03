@@ -3,13 +3,12 @@ name: Slack Notify
 on:
     workflow_call:
         inputs:
-            channel:
-                required: true
-                type: string
             message:
                 required: true
                 type: string
         secrets:
+            SLACK_CHANNEL:
+                required: true
             SLACK_BOT_TOKEN:
                 required: true
 
@@ -23,7 +22,7 @@ jobs:
                 echo "Sending notification to Slack channel"
 
                 payload=$(jq -n \
-                    --arg channel "${{ inputs.channel }}" \
+                    --arg channel "${{ secrets.SLACK_CHANNEL }}" \
                     --arg text "${{ inputs.message }}" \
                     '{
                         channel: $channel,
