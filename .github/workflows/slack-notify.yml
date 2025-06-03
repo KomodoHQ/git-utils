@@ -65,11 +65,52 @@ jobs:
 
                 payload=$(jq -n \
                     --arg channel "${{ secrets.SLACK_CHANNEL }}" \
-                    --arg text "$SLACK_MESSAGE" \
+                    --arg status "${status}" \
+                    --arg repo "${repo}" \
+                    --arg branch "${branch}" \
+                    --arg sha "${sha}" \
+                    --arg actor "${actor}" \
+                    --arg action "${action}" \
+                    --arg url "https://github.com/${repo}/actions/runs/${{ github.run_id }}" \
                     '{
                         channel: $channel,
-                        text: $text
+                        blocks: [
+                        {
+                            "type": "header",
+                            "text": {
+                            "type": "plain_text",
+                            "text": ":rocket: Deployment '"${status^}"' :rocket:",
+                            "emoji": true
+                            }
+                        },
+                        {
+                            "type": "section",
+                            "fields": [
+                            { "type": "mrkdwn", "text": "*Repository:*\n`\($repo)`" },
+                            { "type": "mrkdwn", "text": "*Branch:*\n`\($branch)`" },
+                            { "type": "mrkdwn", "text": "*Commit:*\n`\($sha)`" },
+                            { "type": "mrkdwn", "text": "*Author:*\n`\($actor)`" },
+                            { "type": "mrkdwn", "text": "*Workflow:*\n`\($action)`" }
+                            ]
+                        },
+                        {
+                            "type": "actions",
+                            "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                "type": "plain_text",
+                                "text": "View Workflow",
+                                "emoji": true
+                                },
+                                "url": $url,
+                                "style": "primary"
+                            }
+                            ]
+                        }
+                        ]
                     }')
+
                 response=$(curl -s -X POST \
                     -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
                     -H "Content-Type: application/json" \
